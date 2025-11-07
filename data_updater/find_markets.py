@@ -290,7 +290,7 @@ def add_volatility(row):
     new_dict = {**row_dict, **stats}
     return new_dict
 
-def add_volatility_to_df(df, max_workers=3):
+def add_volatility_to_df(df, max_workers=2):
     
     results = []
     df = df.reset_index(drop=True)
