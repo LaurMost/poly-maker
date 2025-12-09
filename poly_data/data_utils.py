@@ -150,6 +150,7 @@ def update_markets():
 
     if len(received_df) > 0:
         global_state.df, global_state.params = received_df.copy(), received_params
+        global_state.strategy_config = {}
     
 
     for _, row in global_state.df.iterrows():
@@ -164,6 +165,14 @@ def update_markets():
 
         if row['token2'] not in global_state.REVERSE_TOKENS:
             global_state.REVERSE_TOKENS[row['token2']] = row['token1']
+
+        strategies = row.get('strategies', '')
+        if strategies:
+            strategy_ids = [s.strip() for s in str(strategies).split(',') if s.strip()]
+        else:
+            strategy_ids = []
+
+        global_state.strategy_config[str(row['condition_id'])] = strategy_ids
 
         for col2 in [f"{row['token1']}_buy", f"{row['token1']}_sell", f"{row['token2']}_buy", f"{row['token2']}_sell"]:
             if col2 not in global_state.performing:

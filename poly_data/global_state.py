@@ -13,7 +13,10 @@ REVERSE_TOKENS = {}
 all_data = {}  
 
 # Market configuration data from Google Sheets
-df = None  
+df = None
+
+# Strategy configuration per condition_id
+strategy_config = {}
 
 # ============ Client & Parameters ============
 
