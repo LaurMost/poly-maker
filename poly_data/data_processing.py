@@ -3,13 +3,10 @@ from sortedcontainers import SortedDict
 import poly_data.global_state as global_state
 import poly_data.CONSTANTS as CONSTANTS
 
-from strategies.market_maker import MarketMakerStrategy
+from strategies.manager import strategy_manager
 import time
 import asyncio
 from poly_data.data_utils import set_position, set_order, update_positions
-
-
-strategy = MarketMakerStrategy()
 
 
 def queue_trade(market):
@@ -19,7 +16,7 @@ def queue_trade(market):
         print(f"No market data found for {market}")
         return
 
-    asyncio.create_task(strategy.execute(market, market_data))
+    asyncio.create_task(strategy_manager.execute_strategies(market, market_data))
 
 def process_book_data(asset, json_data):
     global_state.all_data[asset] = {
