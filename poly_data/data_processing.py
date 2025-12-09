@@ -3,10 +3,23 @@ from sortedcontainers import SortedDict
 import poly_data.global_state as global_state
 import poly_data.CONSTANTS as CONSTANTS
 
-from trading import perform_trade
-import time 
+from strategies.market_maker import MarketMakerStrategy
+import time
 import asyncio
 from poly_data.data_utils import set_position, set_order, update_positions
+
+
+strategy = MarketMakerStrategy()
+
+
+def queue_trade(market):
+    try:
+        market_data = global_state.df[global_state.df['condition_id'] == market].iloc[0]
+    except IndexError:
+        print(f"No market data found for {market}")
+        return
+
+    asyncio.create_task(strategy.execute(market, market_data))
 
 def process_book_data(asset, json_data):
     global_state.all_data[asset] = {
@@ -42,7 +55,7 @@ def process_data(json_datas, trade=True):
             process_book_data(asset, json_data)
 
             if trade:
-                asyncio.create_task(perform_trade(asset))
+                queue_trade(asset)
                 
         elif event_type == 'price_change':
             for data in json_data['price_changes']:
@@ -52,7 +65,7 @@ def process_data(json_datas, trade=True):
                 process_price_change(asset, side, price_level, new_size)
 
                 if trade:
-                    asyncio.create_task(perform_trade(asset))
+                    queue_trade(asset)
         
 
         # pretty_print(f'Received book update for {asset}:', global_state.all_data[asset])
@@ -127,7 +140,7 @@ def process_user_data(rows):
                         print("Performing is ", global_state.performing)
                         print("Performing timestamps is ", global_state.performing_timestamps)
                         
-                        asyncio.create_task(perform_trade(market))
+                        queue_trade(market)
 
                 elif row['status'] == 'MATCHED':
                     add_to_performing(col, row['id'])
@@ -138,7 +151,7 @@ def process_user_data(rows):
                     print("Last trade update is ", global_state.last_trade_update)
                     print("Performing is ", global_state.performing)
                     print("Performing timestamps is ", global_state.performing_timestamps)
-                    asyncio.create_task(perform_trade(market))
+                    queue_trade(market)
                 elif row['status'] == 'MINED':
                     remove_from_performing(col, row['id'])
 
@@ -146,7 +159,7 @@ def process_user_data(rows):
                 print("ORDER EVENT FOR: ", row['market'], " STATUS: ",  row['status'], " TYPE: ", row['type'], " SIDE: ", side, "  ORIGINAL SIZE: ", row['original_size'], " SIZE MATCHED: ", row['size_matched'])
                 
                 set_order(token, side, float(row['original_size']) - float(row['size_matched']), row['price'])
-                asyncio.create_task(perform_trade(market))
+                queue_trade(market)
 
     else:
         print(f"User date received for {market} but its not in")
