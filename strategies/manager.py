@@ -3,6 +3,7 @@ from typing import Dict, List, Type
 import poly_data.global_state as global_state
 from strategies.base import BaseStrategy
 from strategies.market_maker import MarketMakerStrategy
+from strategies.dutch_arb import DutchArbStrategy
 
 
 class StrategyManager:
@@ -12,6 +13,7 @@ class StrategyManager:
     ):
         self.registry = registry or {
             "market_maker": MarketMakerStrategy,
+            "dutch_arb": DutchArbStrategy,
         }
         self._instances: Dict[str, BaseStrategy] = {}
 
